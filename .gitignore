@@ -1,0 +1,7 @@
+﻿# Windows / PowerShell
+*.log
+*.tmp
+*.png
+*.jpg
+*.JPG
+!docs/**/*.png
