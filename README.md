@@ -16,6 +16,20 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `docs/win32-notes.md` | 窗口 / 控件 id / 菜单命令 id 速查（实测） |
 | `docs/roadmap.md` | 从脚本到 MCP 的分阶段路线 |
 
+
+## 配套技能：geochemical-anomaly
+
+仓库 `skills/geochemical-anomaly/` 下是同源的**化探全流程手册**（MAPGIS 6.7）：
+数据准备 → 网格化 → 等值线分带 → 图层 → 工程出图 → 综合异常图 → 区文件整理 → 点对区统计，
+含界面布局、工具位置、命令 ID、21 条实测坑。
+
+| 文件 | 内容 |
+|---|---|
+| `SKILL.md` | 全流程手册（9 步 + 各步骤要点） |
+| `interface-map.md` | 窗口结构 / 各子系统菜单树 / 对话框控件 ID / 右键菜单 |
+| `pitfalls.md` | 21 条实测坑与解法 |
+| `grid_filter.py` | 网格中值滤波 + 剔除小斑块，输出 MAPGIS 可读 `.GRD` |
+
 ## 快速开始
 
 ```powershell
