@@ -49,6 +49,24 @@ public class MgX {
     mouse_event(0x0002,0,0,0,IntPtr.Zero); System.Threading.Thread.Sleep(40);
     mouse_event(0x0004,0,0,0,IntPtr.Zero); System.Threading.Thread.Sleep(120);
   }
+  [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, IntPtr extra);
+  public static void CtrlClick(int x, int y) {
+    keybd_event(0x11, 0, 0, IntPtr.Zero); System.Threading.Thread.Sleep(60);
+    Click(x, y);
+    System.Threading.Thread.Sleep(60); keybd_event(0x11, 0, 2, IntPtr.Zero);
+    System.Threading.Thread.Sleep(120);
+  }
+  public static void Drag(int x1, int y1, int x2, int y2) {
+    SetCursorPos(x1, y1); System.Threading.Thread.Sleep(150);
+    mouse_event(0x0002,0,0,0,IntPtr.Zero); System.Threading.Thread.Sleep(150);
+    int steps = 12;
+    for (int i=1;i<=steps;i++) {
+      SetCursorPos(x1 + (x2-x1)*i/steps, y1 + (y2-y1)*i/steps);
+      System.Threading.Thread.Sleep(40);
+    }
+    System.Threading.Thread.Sleep(150);
+    mouse_event(0x0004,0,0,0,IntPtr.Zero); System.Threading.Thread.Sleep(200);
+  }
   public static void RClick(int x, int y) {
     SetCursorPos(x, y); System.Threading.Thread.Sleep(80);
     mouse_event(0x0008,0,0,0,IntPtr.Zero); System.Threading.Thread.Sleep(50);
@@ -125,6 +143,8 @@ foreach ($step in ($Steps -split ";")) {
     "bring"   { $d = Get-Dlg; [MgX]::SetWindowPos($d, [IntPtr]0, 0,0,0,0, 0x0043) | Out-Null; [MgX]::BringWindowToTop($d) | Out-Null; [MgX]::SetForegroundWindow($d) | Out-Null; Start-Sleep -Milliseconds 350; "brought" }
     "click"   { $a = $arg -split ","; [MgX]::Click([int]$a[0],[int]$a[1]); "click $arg" }
     "rclick"  { $a = $arg -split ","; [MgX]::RClick([int]$a[0],[int]$a[1]); "rclick $arg" }
+    "ctrlclick" { $a = $arg -split ","; [MgX]::CtrlClick([int]$a[0],[int]$a[1]); "ctrlclick $arg" }
+    "drag"    { $a = $arg -split ","; [MgX]::Drag([int]$a[0],[int]$a[1],[int]$a[2],[int]$a[3]); "drag $arg" }
     "dclick"  { $d = Get-Dlg; $r = New-Object MgX+RECT; [MgX]::GetWindowRect($d,[ref]$r) | Out-Null; $a = $arg -split ","; [MgX]::Click($r.Left+[int]$a[0], $r.Top+[int]$a[1]); "dclick $arg" }
     "ddclick" { $d = Get-Dlg; $r = New-Object MgX+RECT; [MgX]::GetWindowRect($d,[ref]$r) | Out-Null; $a = $arg -split ","; [MgX]::Click($r.Left+[int]$a[0], $r.Top+[int]$a[1]); Start-Sleep -Milliseconds 60; [MgX]::Click($r.Left+[int]$a[0], $r.Top+[int]$a[1]); "ddclick $arg" }
     "btn"     { $d = Get-Dlg; $c = [MgX]::Find($d,[int]$arg); if ($c -eq [IntPtr]::Zero) { "btn $arg NOT FOUND" } else { [MgX]::SendMessage($c,0x00F5,[IntPtr]::Zero,[IntPtr]::Zero) | Out-Null; "clicked $arg" } }
