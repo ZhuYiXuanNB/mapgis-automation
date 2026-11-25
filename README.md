@@ -14,6 +14,7 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `SKILL.md` | 给 AI agent 用的技能说明（何时用、三个基本动作、三个坑、动作语法） |
 | `scripts/drv.ps1` | 通用驱动：按进程名定位，`-Steps` 分号串联动作 |
 | `docs/win32-notes.md` | 窗口 / 控件 id / 菜单命令 id 速查（实测） |
+| `docs/binary-format.md` | `.WT` / `.WL` / `.WP` 二进制结构实测（点 93 字节、线 57 字节、符号尺寸字段），以及"手工拼装文件为何一律不被识别" |
 | `docs/roadmap.md` | 从脚本到 MCP 的分阶段路线 |
 
 
