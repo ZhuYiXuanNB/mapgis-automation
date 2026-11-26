@@ -1,5 +1,10 @@
 # mapgis-automation
 
+[![CI](https://github.com/ZhuYiXuanNB/mapgis-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/ZhuYiXuanNB/mapgis-automation/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](CONTRIBUTING.md)
+[![MCP: roadmap](https://img.shields.io/badge/MCP-roadmap-lightgrey.svg)](docs/roadmap.md)
+
 让 AI / 脚本操作 **MAPGIS 6.7** 桌面端的实验性工具集与路线图。
 
 MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点菜单、填对话框。
@@ -116,6 +121,11 @@ keys:<SendKeys> | probe:x,y | sleep:<ms>
 - Windows 10/11，MAPGIS 6.7（`C:\mapgis67\program\`）
 - 加密狗服务 `DogServer67.exe` 需先启动
 - 运行期间**屏幕必须解锁**（`LockApp` 存在时键鼠注入无效）
+
+## 参与
+
+发现某个坑的新解法、或摸清了新的字节偏移，欢迎提 PR —— 但请先看 [CONTRIBUTING.md](CONTRIBUTING.md)：
+本仓库只收**有实测证据**的结论（样本文件大小、区段边界、截图），不收"大概是这样的"。
 
 ## License
 
