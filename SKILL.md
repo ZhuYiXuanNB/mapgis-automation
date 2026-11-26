@@ -34,7 +34,8 @@ python skills/vector-io/scripts/wt_attrs.py dump --wt x.WT --out attrs.csv
 关键约束（详见 vector-io 技能）：
 
 - 文件头（657 B）与附属段**从真实文件克隆**，不要凭空造；
-- 点文件 5 段、线文件 8 段，缺任一段 → 能读不能显示；
+- 点文件 5 段、线文件 8 段，缺任一段 → 能读不能显示（已实测：补齐后 MAPGIS 正常显示，
+  见 [`docs/verification.md`](docs/verification.md)）；
 - 改完文件在 MAPGIS 里必须「移除图层 → 重新添加 → 复位窗口」，否则看到的是缓存。
 
 **什么时候别用文件级**：需要 MAPGIS 自己的拓扑重构、构区、等值线追踪——这些算法在本仓库没有实现。

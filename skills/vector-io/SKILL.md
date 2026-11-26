@@ -66,7 +66,8 @@ from mapgis_wl import (read_wl, write_wl, read_wt, write_wt,
 | `.WL` | 0 线索引 / 1 坐标 / 2 属性 / 3 结点表 / 4 55B / 5 元数据 / 6 框表 / 7 标志 | 能解析、不显示 |
 
 `write_wt`/`write_wl` 在 `template=None` 时会补零段并**打印警告**；正式生成请一律给真实模板。
-即便如此，**最终显示效果仍需在 MAPGIS 里目视确认一次**（本仓库尚未做自动化截图验收）。
+**已实测验收**（2026-11-26，SECTION V5.6 + 编辑子系统）：点符号、注记文字（含中文）、字号、颜色、位置全部正常，
+详见 [`docs/verification.md`](../../docs/verification.md)。换机器或换 Slib 版本后仍需再确认一次。
 
 ## 3. 骨架一张表
 
@@ -230,5 +231,5 @@ assert rows[1]["点号"] == "001A1"             # 没串行
 - Python 3.9+，仅需 `numpy`（`pandas` 仅配方里用到）
 - 坐标系：文件里只有投影/椭球索引，真正 CRS 依赖 `mapgis67\program\ellip.dat`；
   本库按"图面毫米"处理，1:50000 时 1 mm = 50 m
-- 生成的文件结构经过回读与段长断言，但**最终显示效果仍需在 MAPGIS 里开一眼**
-  （符号是否可见、字号是否合适），尤其换了机器/Slib 版本之后
+- 生成的文件已在 MAPGIS 6.7 里做过显示验收（点文件 + 注记，见 `docs/verification.md`）；
+  线/面文件的**渲染**尚未逐项验收，只有结构自检；换机/Slib 版本后建议再开一眼

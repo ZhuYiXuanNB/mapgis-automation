@@ -26,6 +26,7 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `docs/win32-notes.md` | 窗口 / 控件 id / 菜单命令 id 速查（实测） |
 | `docs/binary-format.md` | `.WT` / `.WL` / `.WP` 二进制结构实测（点 93 字节、线 57 字节、符号尺寸字段），以及"手工拼装文件为何一律不被识别" |
 | `docs/roadmap.md` | 从脚本到 MCP 的分阶段路线 |
+| `docs/verification.md` | **验收记录**：手工生成的 .WT 在 MAPGIS 6.7 里实际显示（含截图） |
 | `skills/vector-io/` | **点线面文件读写技能**：.WT/.WL/.WP 结构、属性表增改、属性→注记 |
 
 
