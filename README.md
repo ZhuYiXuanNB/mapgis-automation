@@ -16,6 +16,7 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `docs/win32-notes.md` | 窗口 / 控件 id / 菜单命令 id 速查（实测） |
 | `docs/binary-format.md` | `.WT` / `.WL` / `.WP` 二进制结构实测（点 93 字节、线 57 字节、符号尺寸字段），以及"手工拼装文件为何一律不被识别" |
 | `docs/roadmap.md` | 从脚本到 MCP 的分阶段路线 |
+| `skills/vector-io/` | **点线面文件读写技能**：.WT/.WL/.WP 结构、属性表增改、属性→注记 |
 
 
 ## 配套技能：geochemical-anomaly
@@ -31,7 +32,31 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `pitfalls.md` | 21 条实测坑与解法 |
 | `grid_filter.py` | 网格中值滤波 + 剔除小斑块，输出 MAPGIS 可读 `.GRD` |
 
+## 配套技能：vector-io（不点界面，直接改文件）
+
+仓库 `skills/vector-io/` 是**纯 Python 的矢量文件读写技能**，绕开 GUI：
+
+| 文件 | 内容 |
+|---|---|
+| `SKILL.md` | 何时用、三条铁律、字段表、6 个配方、校验清单 |
+| `reference/format.md` | 字节级结构（点/线/面/属性/注记文本池） |
+| `reference/pitfalls.md` | 10 条实测坑 |
+| `scripts/mapgis_wl.py` | `read_wl/write_wl/read_wt/write_wt/read_wt_attrs/write_wt_annot/read_wt_annot` |
+| `scripts/wt_attrs.py` | 属性导出 CSV / 按条件就地改值 |
+| `scripts/set_symbol.py` | 批量改子图号（不动其它字节） |
+| `scripts/demo_selftest.py` | 5 项断言的端到端自检（无需 MAPGIS） |
+
+```bash
+python skills/vector-io/scripts/demo_selftest.py out/
+python skills/vector-io/scripts/wt_attrs.py dump --wt pts.WT --out attrs.csv
+```
+
+这条路是路线图第 5 步（"绕开 GUI：直接读 .WT/.WL/.WP"）的落地：生成点位图、挂属性、
+把属性写成注记（点号 / 大格编号）、生成格网线，全部不需要开 MAPGIS；
+只有最终**目视确认**和内部算法（网格化/等值线/空间分析）才回到桌面端。
+
 ## 快速开始
+
 
 ```powershell
 # 列出目标进程的可见窗口

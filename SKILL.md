@@ -6,6 +6,8 @@ description: "用 Win32 消息与键鼠注入自动化操作 MAPGIS 6.7 桌面�
 # MAPGIS 6.7 桌面自动化
 
 > 上游仓库：https://github.com/ZhuYiXuanNB/mapgis-automation （持续完善，欢迎提 issue）
+>
+> **只想改文件、不点界面？** 用同仓库的 `skills/vector-io` 技能：纯 Python 读写 `.WT/.WL/.WP`，批量改属性、把属性生成注记（点号、大格编号），完全不用启动 MAPGIS。
 
 MAPGIS 6.7 是 VB6 程序，没有命令行接口，也没有可用的 COM 自动化。
 可行的自动化路径只有一条：**Win32 窗口消息 + 键鼠注入 + 截图核对**。
