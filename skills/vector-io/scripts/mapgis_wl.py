@@ -26,7 +26,7 @@ read_wt_attrs(path) -> (fields, rows)
 write_wt_annot(path, items, template=...)     # 注记点（文字）
 read_wt_annot(path) -> [(x, y, text, h, w, gap, angle, color, layer)]
 """
-import struct, os
+import struct, os, sys
 import numpy as np
 
 DATA_START = 657
@@ -125,6 +125,8 @@ def write_wt(path, points, fields=(), rows=(), template=None, symbol=48,
     template: 现有 .WT 文件路径或 657 字节头，用于继承坐标系/常数块
     """
     if template is None:
+        print("[warn] write_wt: 未给 template —— 头部常量与附属段（55B/392B）为空白，"
+              "文件可能被解析但不显示；正式生成请传真实 .WT 作模板。", file=sys.stderr)
         head = bytearray(DATA_START)          # 必须是 657 字节，否则索引区错位
         head[0:8] = T_MAGIC
         struct.pack_into("<i", head, 8, 1)
@@ -207,6 +209,8 @@ def write_wl(path, polylines, ltype=1, aux=0, color=1, width=0.1, layer=0,
         meta = src[idx[5][0]:idx[5][0] + idx[5][1]]
         prefix = src[idx[2][0]:idx[2][0] + 322]
     else:
+        print("[warn] write_wl: 未给 template —— 55B/392B 元数据段为空白，"
+              "文件可能被解析但不显示；正式生成请传真实 .WL 作模板。", file=sys.stderr)
         head = bytearray(DATA_START)
         head[0:8] = W_MAGIC
         struct.pack_into("<i", head, 8, 0)

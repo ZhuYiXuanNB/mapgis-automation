@@ -1,151 +1,128 @@
 ---
 name: mapgis-automation
-description: "用 Win32 消息与键鼠注入自动化操作 MAPGIS 6.7 桌面端（W60_DTM 空间分析、mdiedit6x 输入编辑、mapout60 输出）。当需要无人值守地点击 MAPGIS 菜单/对话框、批量出图、或为 MAPGIS 编写自动化脚本与 MCP 服务时使用。"
+description: "MAPGIS 6.7 自动化的总入口：先判断任务该走「文件级」（纯 Python 读写 .WT/.WL/.WP，不启动软件）还是「界面级」（Win32 消息驱动菜单），再转到对应技能。当用户要求批量生成/修改 MAPGIS 点线面数据、挂属性、出图，或自动化操作 MAPGIS 6.7 时，先读本文件做路线选择。"
 ---
 
-# MAPGIS 6.7 桌面自动化
+# MAPGIS 6.7 自动化总入口
 
-> 上游仓库：https://github.com/ZhuYiXuanNB/mapgis-automation （持续完善，欢迎提 issue）
->
-> **只想改文件、不点界面？** 用同仓库的 `skills/vector-io` 技能：纯 Python 读写 `.WT/.WL/.WP`，批量改属性、把属性生成注记（点号、大格编号），完全不用启动 MAPGIS。
+> 仓库：https://github.com/ZhuYiXuanNB/mapgis-automation
+> 本文件只负责**路线判定 + 界面级基础能力**；数据操作细节都在子技能里。
 
-MAPGIS 6.7 是 VB6 程序，没有命令行接口，也没有可用的 COM 自动化。
-可行的自动化路径只有一条：**Win32 窗口消息 + 键鼠注入 + 截图核对**。
+## 0. 先选路线：90% 的坑源于选错路线
 
-详细踩坑与命令表见同目录 `references/`；通用驱动脚本见 `scripts/drv.ps1`。
+| 你要做的事 | 走哪条路 | 去哪儿 |
+|---|---|---|
+| 生成/修改 `.WT` `.WL` `.WP`、挂属性、改符号 | **文件级**（不启动 MAPGIS） | [`skills/vector-io/SKILL.md`](skills/vector-io/SKILL.md) |
+| 属性 → 注记（点号、大格编号）、生成格网线 | **文件级** | 同上（`make_grid_labels` 思路在 SKILL 配方里） |
+| Excel 采样数据 → 单元素/综合异常图（要网格化、等值线、工程输出） | **混合**：文件级备数据 + 界面级出图 | [`skills/geochemical-anomaly/SKILL.md`](skills/geochemical-anomaly/SKILL.md) |
+| 必须用 MAPGIS 内部算法（网格化 DTM、空间分析、图幅裁剪） | **界面级** | 本文 §2 + `scripts/drv.ps1` |
+| 只想看看文件对不对/读出坐标 | **文件级** | [`skills/vector-io/SKILL.md`](skills/vector-io/SKILL.md) |
 
+**判定口诀：能自己算出结果 → 文件级；必须让 MAPGIS 算 → 界面级。**
 
-## 环境与安装位置
+> 旧版本说"MAPGIS 没有命令行，自动化只有 Win32 一条路"——**这句话已过时**。
+> 自 2026-11 起，点/线/面的二进制结构已摸清（`skills/vector-io/reference/format.md`），
+> 常规数据准备可以完全不碰界面，只在**最终目视确认**和**内部算法**时才回到桌面端。
+
+## 1. 路线 A：文件级（先试这条）
+
+```bash
+python skills/vector-io/scripts/demo_selftest.py out/     # 先证工具链可用（5 项断言）
+python skills/vector-io/scripts/wt_attrs.py dump --wt x.WT --out attrs.csv
+```
+
+关键约束（详见 vector-io 技能）：
+
+- 文件头（657 B）与附属段**从真实文件克隆**，不要凭空造；
+- 点文件 5 段、线文件 8 段，缺任一段 → 能读不能显示；
+- 改完文件在 MAPGIS 里必须「移除图层 → 重新添加 → 复位窗口」，否则看到的是缓存。
+
+**什么时候别用文件级**：需要 MAPGIS 自己的拓扑重构、构区、等值线追踪——这些算法在本仓库没有实现。
+
+## 2. 路线 B：界面级（Win32 消息 + 键鼠注入）
+
+MAPGIS 6.7 是 VB6 程序，没有命令行接口，也没有可用 COM。能自动化的只有窗口消息：
+
+```powershell
+# 列出进程的可见窗口
+.\scripts\drv.ps1 -Proc W60_DTM -Steps "wins"
+
+# 发菜单命令（例：平面等值线图绘制）
+.\scripts\drv.ps1 -Proc W60_DTM -Steps "cmd:32946;sleep:3500;wins"
+
+# 填对话框 + 确定 + 截图核对
+.\scripts\drv.ps1 -Proc mdiedit6x -Steps "findtitle:设置输出位图的分辨率;setedit:1005=300;postbtn:1"
+```
 
 | 项 | 位置 |
 |---|---|
 | 主程序 | `C:\mapgis67\program\`：`mdiedit6x.exe` 编辑、`W60_DTM.exe` DTM、`W60_Anly.exe` 空间分析、`mapout60.exe` 输出 |
-| 加密狗服务 | `D:\programfiles\MapGIS6.7 051118\MAPGIS6.7\DogServer67.exe`（须先启动） |
+| 加密狗服务 | `DogServer67.exe`（须先启动） |
 | 系统库 | `C:\mapgis67\Slib`、`Slib5000`、`SuvSlib` |
-| 工作目录 | 短英文路径，如 `C:\ws`（MAPGIS 对中文长路径支持很差） |
+| 工作目录 | 短英文路径，如 `C:\ws`（中文长路径支持差） |
 
-## 界面布局（驱动脚本要认的结构）
+### 2.1 三个基本动作
 
-```
-主框架 (Afx:...)
-├── 菜单栏      y ≈ 32，内容随激活窗口变化！
-├── 工具栏
-├── 左停靠窗格  x 0~185（文件列表 / 工程模式为项目栏）
-├── MDI 客户区 → 图形子窗口（带 X/Y 标尺）
-└── 状态栏      当前状态 | 坐标 | 显示比例 | 当前图层
-```
+1. **找窗口**：按进程名 + 标题找，**不要用"最新窗口"**（隐藏的 `错误警告`/`tooltips` 会抢句柄）。
+2. **发命令**：`PostMessage(hMain, 0x0111, cmdId, 0)`；命令 ID 用 `GetMenu`/`GetMenuItemID` 现场枚举。
+3. **填对话框**：`EnumChildWindows` 打印 `id/class/rect/text` 再动手；`WM_SETTEXT`/`BM_CLICK`/`CB_SETCURSEL`。
 
-三个子系统（`W60_DTM` / `mdiedit6x` / `W60_Anly`）+ 输出模式，菜单栏各不相同；
-完整菜单树、命令 ID、对话框控件 ID 见 `docs/win32-notes.md`。
-
-**判断状态先看两处**：
-- 状态栏"当前图层"——`[点]` 时区编辑无效；
-- 菜单栏第 2 项——是 `工作区` 说明图形窗口已激活，否则是工程窗口。
-
-## 三个基本动作
-
-### 1. 找窗口
-
-```powershell
-# 按进程名找主窗口
-$p = Get-Process W60_DTM | Sort-Object StartTime -Descending | Select-Object -First 1
-$p.MainWindowHandle
-
-# 按标题找对话框（比"最新窗口"可靠）
-# EnumWindows + GetWindowThreadProcessId + GetWindowTextW
-```
-
-**不要用"取最新窗口"**：MAPGIS 里常年存在隐藏窗口（`错误警告`、`tooltips_class32`），会抢到错误句柄。
-
-### 2. 发命令
-
-菜单命令用 `WM_COMMAND`（0x0111）发给**主框架窗口**：
-
-```powershell
-PostMessage($hMain, 0x0111, [IntPtr]$cmdId, [IntPtr]::Zero)
-```
-
-命令 ID 可以用 `GetMenu` / `GetSubMenu` / `GetMenuItemID` 现场枚举，不用猜：
-
-```powershell
-# 例：枚举"光栅输出"子菜单
-GetSubMenu(GetMenu($hMain), 2) → 逐项 GetMenuItemID / GetMenuStringW
-```
-
-常用 ID（W60_DTM / mdiedit6x）：
-
-| ID | 功能 |
-|---|---|
-| 32946 | 平面等值线图绘制（DTM） |
-| 107 / 109 / 110 | 工作区 → 装入区文件 / 存区文件 / 换名存区文件（编辑） |
-| 32844 / 32808 / 415 | 区编辑 → 选择区 / 合并区 / 删除区 |
-| 32771 / 32773 | 空间分析子系统 → 装点文件 / 装区文件（同为 32771，输出模式里是"页面设置"，按子系统区分） |
-| 32828 | 空间分析 → 点空间分析 → 点对区 相交分析 |
-| 32855 | 属性分析 → 浏览属性数据 |
-| 32804 / 32805 / 32806 | 存点 / 线 / 区数据文件（DTM） |
-| 57600 | 新建工程（编辑） |
-| 32851 | 打开工程或文件 |
-| 32771 | 页面设置（输出模式） |
-| 32780 | 工程输出（编辑→输出模式） |
-| 32791 | 返回编辑 |
-| 32982 | **生成JPEG图像**（输出模式） |
-
-### 3. 填对话框
-
-```powershell
-# 子控件按 id 找，再发消息
-SendMessage($hDlg, 0x0111, 1, 0)          # 点确定（WM_COMMAND）
-SendMessage($hEdit, 0x000C, 0, "值")      # WM_SETTEXT
-SendMessage($hBtn, 0x00F5, 0, 0)          # BM_CLICK
-SendMessage($hCombo, 0x014E, 1, 0)        # CB_SETCURSEL
-```
-
-先 `EnumChildWindows` 打印每个控件的 `id / class / rect / text`，再动手 —— 比看截图猜快得多。
-
-## 三个必知的坑（外加两个实操细节）
-
-1. **隐藏模态框会吞掉所有命令**
-   `错误警告：MapGis多用户服务器工作不正常` 的 `IsWindowVisible` 为 false，但它挡在消息循环里，导致"工程输出"点了没反应。
-   处理：枚举该进程全部顶层窗口（含不可见），找到 `#32770` 就 `postbtn:1` / `btn:1`。
-
-2. **菜单位置每次不同**
-   VB6 自绘弹窗（`#32768`）的坐标随当前选中项变化。
-   处理：用 `GetMenuItemRect` 取菜单项矩形；或从控件的 `GetWindowRect` 实时换算格心；操作完必须读回状态确认。
-
-3. **点击可能落在错误控件上，改坏数据**
-   例如色盘没弹出时，点击会落到等值线层值列，把 `126.49` 改成 `60`。
-   处理：每次点击前先确认目标窗口标题；点击后截图/读值校验。
-
-
-4. **菜单会随激活的窗口变化**
-   同一进程里，工程窗口激活时菜单栏没有 `工作区`，图形窗口激活时才有。
-   发命令前先确认菜单栏结构（`GetMenu` 枚举一遍），否则命令 ID 对也可能无效果。
-
-5. **删除图元后必须"更新窗口"**
-   `区编辑 → 删除区` 执行后图形不刷新，看着像没删掉；要右键 → 更新窗口（与复位窗口同处）。
-
-## 基础循环
+动作语法（`-Steps` 用分号串联）：
 
 ```
-枚举窗口 → 发命令 → 等 1~3 s → 截图或 EnumChildWindows 核对 → 下一步
-```
-
-驱动脚本 `scripts/drv.ps1` 已封装常用动作，`-Steps` 用分号串联：
-
-```
-wins | dlg | findtitle:xxx | use:<hwnd> | cmd:<id> | dlgcmd:<id>
+wins | dlg | findtitle:<子串> | use:<hwnd> | cmd:<id> | dlgcmd:<id>
 click:x,y | rclick:x,y | dclick:x,y（相对对话框）
-set:<id>=<text> | setedit:<id>=<text> | btn:<id> | postbtn:<id> | combo:<id> | comboi:<id>,<idx>
-rgb（读色盘颜色号与 RGB） | shot:<path> | shotmain:<path> | keys:<SendKeys> | probe:x,y | sleep:<ms>
+set:<id>=<文本> | setedit:<id>=<文本> | btn:<id> | postbtn:<id>
+combo:<id> | comboi:<id>,<序号> | chk:<id> | listitems:<id>
+rgb | colnum | shot:<png> | shotmain:<png> | keys:<SendKeys> | probe:x,y | sleep:<ms>
 ```
 
-## 边界
+菜单命令 ID / 控件 ID 速查：[docs/win32-notes.md](docs/win32-notes.md)。
 
-- 需要解锁屏幕：`SetCursorPos` / `mouse_event` 在 `LockApp` 运行时无效
-- 每一步都依赖上一屏的像素；窗口被遮挡、分辨率变化、DPI 缩放都会打断
-- 长任务建议每步落一张截图，便于回看失败点
+### 2.2 必知的坑
 
-## 往 MCP 方向走
+1. **隐藏模态框吞命令**：`错误警告（MapGis多用户服务器工作不正常）` 的 `IsWindowVisible=false`，但挡在消息循环里。
+   → 枚举该进程**全部**顶层窗口（含不可见），遇到 `#32770` 就点掉。
+2. **菜单坐标每次不同**：VB6 自绘弹窗 `#32768` 位置随滚动变化。
+   → 用 `GetMenuItemRect`/`GetWindowRect` 实时换算，点完读回校验。
+3. **点错控件会改坏数据**：例如色盘没弹出时点到层值列，把 `126.49` 改成 `60`。
+   → 点前确认窗口标题，点后截图/读值核对。
 
-见仓库 `docs/roadmap.md`：把"窗口/命令/对话框"抽象成 4~6 个工具（open_map、set_levels、set_colors、export_jpeg、screenshot），
-底层仍是这套 Win32 调用，但对模型暴露成语义操作；进一步可用 MAPGIS SDK / 二次开发接口替代 GUI。
+其余 20+ 条见 `skills/geochemical-anomaly/pitfalls.md`。
+
+## 3. 两条路怎么衔接（标准工作流）
+
+```
+Excel 采样表
+   │  ① 文件级：生成 .WT（坐标+属性）      → skills/vector-io
+   ▼
+MAPGIS 编辑：添加文件 → 目视确认符号/注记  → 本技能 §2（可选，也可以人工确认）
+   │  ② 界面级：DTM 网格化 → 等值线 → 分级配色
+   ▼
+工程输出 JPG                             → 本技能 §2 / drv.ps1
+```
+
+**缓存提醒**：外部改过 `.WT` 后，MAPGIS 不会自动刷新——必须「移除图层 → 重新添加 → 复位窗口」。
+
+## 4. 常见任务索引
+
+| 任务 | 入口 |
+|---|---|
+| CSV → 点文件 / 改属性 / 改符号 | `skills/vector-io` §9 配方 ①②⑤ |
+| 属性 → 注记（点号） | `skills/vector-io` §4.3 + 配方 ③ |
+| 大格编号 / 格网线 | `skills/vector-io` 配方 ④⑥ |
+| 读水系做分级/拓扑 | `skills/vector-io` 配方 ⑥ |
+| 网格化、等值线、异常分带 | `skills/geochemical-anomaly/SKILL.md` |
+| 出 JPG、改分辨率 | 本技能 §2 命令 ID `32982` / `32946` |
+
+## 5. 环境
+
+- Windows 10/11 + MAPGIS 6.7（`C:\mapgis67\program\`）
+- 界面级：加密狗服务先启动，**屏幕必须解锁**
+- 文件级：Python 3.9+ 与 `numpy`
+
+## 6. 维护约定
+
+- 新知识写进**对应子技能**的 `reference/`，不要都堆在根目录；
+- 改文件格式结论时，同步 `skills/vector-io/reference/format.md` 与 `docs/binary-format.md`；
+- 提交前跑一遍 `python skills/vector-io/scripts/demo_selftest.py`。

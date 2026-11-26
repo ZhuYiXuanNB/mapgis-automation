@@ -7,6 +7,16 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 
 > 状态：实验性。已在 Windows 10 + MAPGIS 6.7 上跑通"网格化 → 等值线 → 白底分级配色 → 图层保存 → 工程输出 → 300 dpi JPEG"全流程，并用它批量出过 6 张地球化学异常图。
 
+## 技能地图（先按任务选技能）
+
+| 任务 | 技能 | 说明 |
+|---|---|---|
+| 生成/改 .WT .WL .WP、挂属性、属性→注记、格网线 | [`skills/vector-io`](skills/vector-io/SKILL.md) | **纯 Python，不启动 MAPGIS**；先跑它的 demo_selftest |
+| 网格化、等值线、异常分带、工程出图 | [`skills/geochemical-anomaly`](skills/geochemical-anomaly/SKILL.md) | 混合：文件级备数据 + 界面级出图 |
+| 点菜单/填对话框/截图核对 | 根 [`SKILL.md`](SKILL.md) | Win32 消息驱动，兜底路线 |
+
+> 判定口诀：**能自己算出结果 → 文件级；必须让 MAPGIS 算 → 界面级。**
+
 ## 里面有什么
 
 | 路径 | 内容 |
