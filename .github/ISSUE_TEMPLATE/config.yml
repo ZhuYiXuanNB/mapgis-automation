@@ -1,8 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: 先读技能地图 / 路线判定
-    url: https://github.com/ZhuYiXuanNB/mapgis-automation/blob/main/SKILL.md
-    about: 90% 的坑源于选错路线——文件级还是界面级，先在这里判一次。
-  - name: 实测坑清单
-    url: https://github.com/ZhuYiXuanNB/mapgis-automation/blob/main/skills/vector-io/reference/pitfalls.md
-    about: 隐藏模态框、坐标漂移、索引区隐藏指针这些已知问题及解法。
