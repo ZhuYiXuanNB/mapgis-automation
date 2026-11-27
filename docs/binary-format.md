@@ -1,8 +1,8 @@
 # MAPGIS 6.7 矢量文件二进制结构（早期实测记录 · 已部分修正）
 
 > **状态**：这是 2026-11 上旬的第一次实测记录，保留作为**证据与教训**。
-> 完整且已修正的结构表在 [`skills/vector-io/reference/format.md`](../skills/vector-io/reference/format.md)，
-> 实现与自检在 [`skills/vector-io/scripts/`](../skills/vector-io/scripts/)。
+> 完整且已修正的结构表在 [`skills/mapgis-native-file/references/format.md`](../skills/mapgis-native-file/references/format.md)，
+> 实现与自检在 [`skills/mapgis-native-file/scripts/`](../skills/mapgis-native-file/scripts/)。
 > 本文只保留当时独有的观察（手工拼装失败的逐字节比对）以及**被修正的结论**。
 
 ## 一、当时测到、后来印证无误的部分
@@ -58,6 +58,6 @@
 
 ## 五、现在该看哪
 
-- 完整结构表：[skills/vector-io/reference/format.md](../skills/vector-io/reference/format.md)
-- 坑清单：[skills/vector-io/reference/pitfalls.md](../skills/vector-io/reference/pitfalls.md)
-- 自检：[skills/vector-io/scripts/demo_selftest.py](../skills/vector-io/scripts/demo_selftest.py)
+- 完整结构表：[skills/mapgis-native-file/references/format.md](../skills/mapgis-native-file/references/format.md)
+- 坑清单：[skills/mapgis-native-file/references/pitfalls.md](../skills/mapgis-native-file/references/pitfalls.md)
+- 自检：[skills/mapgis-native-file/scripts/selftest.py](../skills/mapgis-native-file/scripts/selftest.py)

@@ -1,7 +1,7 @@
 # 验收：手工生成的 .WT 能不能在 MAPGIS 里正常显示？
 
 > 日期：2026-11-26 · 环境：Windows 11 + MAPGIS 6.7（`C:\mapgis67`）· 工具：SECTION V5.6、编辑子系统
-> 触发背景：`docs/binary-format.md` 早期版本断言"手工拼装一律被拒绝"，而 `skills/vector-io` 的写库却能生成文件。
+> 触发背景：`docs/binary-format.md` 早期版本断言"手工拼装一律被拒绝"，而 `skills/mapgis-native-file` 的写库却能生成文件。
 > 本页是**据此做的实测验收**，结论用于收回/确认该断言。
 
 ## 一、结论
@@ -35,19 +35,19 @@
 
 ```bat
 REM 1) 生成验收用文件（大字注记 + 三种字号符号）
-python skills\vector-io\scripts\demo_selftest.py out\     REM 结构自检，5 项断言
-python work\make_big_labels.py                               REM 或自写几行 write_wt_annot
+python skills\mapgis-native-file\scripts\selftest.py         REM 字节级回归（需样本，缺样本自动 SKIP）
+python work\make_big_labels.py                               REM 或自写几行 write_labels
 
 REM 2) 用 Section 打开（自动复位视图）
 "C:\mapgis67\program\section.exe" out\TEST_BIG.WT
 ```
 
 ```python
-from mapgis_wl import write_wt_annot
-write_wt_annot("TEST_BIG.WT", [
-    dict(x=10500, y=57000, text="001", h=6, w=5, gap=0.5, color=1),
-    dict(x=10520, y=57000, text="大格号", h=6, w=5, gap=0.5, color=1),
-], template=r"...\图框.WT")     # 模板必须给，且必须是 .WT
+from mapgis_native import Skeleton, write_labels
+write_labels("TEST_BIG.WT", Skeleton.from_file(r"...\图框.WT"), [
+    dict(x=10500, y=57000, text="001"),
+    dict(x=10520, y=57000, text="大格号"),
+], height=6, width=5, gap=0.5, color=1, layer=12)   # 骨架必须取自注记 .WT
 ```
 
 ## 五、对仓库结论的修订
@@ -55,7 +55,7 @@ write_wt_annot("TEST_BIG.WT", [
 | 位置 | 原文 | 现在 |
 |---|---|---|
 | `docs/binary-format.md` | "手工生成文件一律不被识别……不要试图手工拼装" | 改为"**缺段**才不被识别；补齐 5/8 段并克隆头即可（本节已实测）" |
-| `skills/vector-io/SKILL.md` | "最终显示仍需在 MAPGIS 里目视确认一次（尚未做）" | 改为"已验证，见 `docs/verification.md`；换机器/Slib 版本仍需再确认" |
+| `skills/mapgis-native-file/SKILL.md` | "最终显示仍需在 MAPGIS 里目视确认一次（尚未做）" | 改为"已验证，见 `docs/verification.md`；换机器/Slib 版本仍需再确认" |
 
 ## 六、边界（仍然成立）
 

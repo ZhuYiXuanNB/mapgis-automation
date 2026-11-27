@@ -12,26 +12,26 @@ description: "MAPGIS 6.7 自动化的总入口：先判断任务该走「文件�
 
 | 你要做的事 | 走哪条路 | 去哪儿 |
 |---|---|---|
-| 生成/修改 `.WT` `.WL` `.WP`、挂属性、改符号 | **文件级**（不启动 MAPGIS） | [`skills/vector-io/SKILL.md`](skills/vector-io/SKILL.md) |
+| 生成/修改 `.WT` `.WL` `.WP`、挂属性、改符号 | **文件级**（不启动 MAPGIS） | [`skills/mapgis-native-file/SKILL.md`](skills/mapgis-native-file/SKILL.md) |
 | 属性 → 注记（点号、大格编号）、生成格网线 | **文件级** | 同上（`make_grid_labels` 思路在 SKILL 配方里） |
 | Excel 采样数据 → 单元素/综合异常图（要网格化、等值线、工程输出） | **混合**：文件级备数据 + 界面级出图 | [`skills/geochemical-anomaly/SKILL.md`](skills/geochemical-anomaly/SKILL.md) |
 | 必须用 MAPGIS 内部算法（网格化 DTM、空间分析、图幅裁剪） | **界面级** | 本文 §2 + `scripts/drv.ps1` |
-| 只想看看文件对不对/读出坐标 | **文件级** | [`skills/vector-io/SKILL.md`](skills/vector-io/SKILL.md) |
+| 只想看看文件对不对/读出坐标 | **文件级** | [`skills/mapgis-native-file/SKILL.md`](skills/mapgis-native-file/SKILL.md) |
 
 **判定口诀：能自己算出结果 → 文件级；必须让 MAPGIS 算 → 界面级。**
 
 > 旧版本说"MAPGIS 没有命令行，自动化只有 Win32 一条路"——**这句话已过时**。
-> 自 2026-11 起，点/线/面的二进制结构已摸清（`skills/vector-io/reference/format.md`），
+> 自 2026-11 起，点/线/面的二进制结构已摸清（`skills/mapgis-native-file/references/format.md`），
 > 常规数据准备可以完全不碰界面，只在**最终目视确认**和**内部算法**时才回到桌面端。
 
 ## 1. 路线 A：文件级（先试这条）
 
 ```bash
-python skills/vector-io/scripts/demo_selftest.py out/     # 先证工具链可用（5 项断言）
-python skills/vector-io/scripts/wt_attrs.py dump --wt x.WT --out attrs.csv
+python skills/mapgis-native-file/scripts/mapgis_native.py verify x.WT   # 三判据自检
+python skills/mapgis-native-file/scripts/wt_attrs.py dump --wt x.WT --out attrs.csv
 ```
 
-关键约束（详见 vector-io 技能）：
+关键约束（详见 mapgis-native-file 技能）：
 
 - 文件头（657 B）与附属段**从真实文件克隆**，不要凭空造；
 - 点文件 5 段、线文件 8 段，缺任一段 → 能读不能显示（已实测：补齐后 MAPGIS 正常显示，
@@ -95,7 +95,7 @@ rgb | colnum | shot:<png> | shotmain:<png> | keys:<SendKeys> | probe:x,y | sleep
 
 ```
 Excel 采样表
-   │  ① 文件级：生成 .WT（坐标+属性）      → skills/vector-io
+   │  ① 文件级：生成 .WT（坐标+属性）      → skills/mapgis-native-file
    ▼
 MAPGIS 编辑：添加文件 → 目视确认符号/注记  → 本技能 §2（可选，也可以人工确认）
    │  ② 界面级：DTM 网格化 → 等值线 → 分级配色
@@ -109,10 +109,10 @@ MAPGIS 编辑：添加文件 → 目视确认符号/注记  → 本技能 §2（
 
 | 任务 | 入口 |
 |---|---|
-| CSV → 点文件 / 改属性 / 改符号 | `skills/vector-io` §9 配方 ①②⑤ |
-| 属性 → 注记（点号） | `skills/vector-io` §4.3 + 配方 ③ |
-| 大格编号 / 格网线 | `skills/vector-io` 配方 ④⑥ |
-| 读水系做分级/拓扑 | `skills/vector-io` 配方 ⑥ |
+| CSV → 点文件 / 改属性 / 改符号 | `skills/mapgis-native-file` §9 配方 ①②⑤ |
+| 属性 → 注记（点号） | `skills/mapgis-native-file` §4.3 + 配方 ③ |
+| 大格编号 / 格网线 | `skills/mapgis-native-file` 配方 ④⑥ |
+| 读水系做分级/拓扑 | `skills/mapgis-native-file` 配方 ⑥ |
 | 网格化、等值线、异常分带 | `skills/geochemical-anomaly/SKILL.md` |
 | 出 JPG、改分辨率 | 本技能 §2 命令 ID `32982` / `32946` |
 
@@ -120,10 +120,10 @@ MAPGIS 编辑：添加文件 → 目视确认符号/注记  → 本技能 §2（
 
 - Windows 10/11 + MAPGIS 6.7（`C:\mapgis67\program\`）
 - 界面级：加密狗服务先启动，**屏幕必须解锁**
-- 文件级：Python 3.9+ 与 `numpy`
+- 文件级：Python 3.9+（纯标准库，无第三方依赖）
 
 ## 6. 维护约定
 
 - 新知识写进**对应子技能**的 `reference/`，不要都堆在根目录；
-- 改文件格式结论时，同步 `skills/vector-io/reference/format.md` 与 `docs/binary-format.md`；
-- 提交前跑一遍 `python skills/vector-io/scripts/demo_selftest.py`。
+- 改文件格式结论时，同步 `skills/mapgis-native-file/references/format.md` 与 `docs/binary-format.md`；
+- 提交前跑一遍 `python skills/mapgis-native-file/scripts/selftest.py`（需真实样本；缺样本会 SKIP，不算通过）。

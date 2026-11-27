@@ -11,7 +11,7 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 
 | 任务 | 技能 | 说明 |
 |---|---|---|
-| 生成/改 .WT .WL .WP、挂属性、属性→注记、格网线 | [`skills/vector-io`](skills/vector-io/SKILL.md) | **纯 Python，不启动 MAPGIS**；先跑它的 demo_selftest |
+| 生成/改 .WT .WL .WP、挂属性、属性→注记、格网线 | [`skills/mapgis-native-file`](skills/mapgis-native-file/SKILL.md) | **纯 Python，不启动 MAPGIS**；先跑它的 `selftest.py`（缺样本自动 SKIP） |
 | 网格化、等值线、异常分带、工程出图 | [`skills/geochemical-anomaly`](skills/geochemical-anomaly/SKILL.md) | 混合：文件级备数据 + 界面级出图 |
 | 点菜单/填对话框/截图核对 | 根 [`SKILL.md`](SKILL.md) | Win32 消息驱动，兜底路线 |
 
@@ -27,7 +27,7 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `docs/binary-format.md` | `.WT` / `.WL` / `.WP` 二进制结构实测（点 93 字节、线 57 字节、符号尺寸字段），以及"手工拼装文件为何一律不被识别" |
 | `docs/roadmap.md` | 从脚本到 MCP 的分阶段路线 |
 | `docs/verification.md` | **验收记录**：手工生成的 .WT 在 MAPGIS 6.7 里实际显示（含截图） |
-| `skills/vector-io/` | **点线面文件读写技能**：.WT/.WL/.WP 结构、属性表增改、属性→注记 |
+| `skills/mapgis-native-file/` | **原生文件读写技能**：.WT/.WL 结构、属性表增改、属性→注记、图例线 |
 
 
 ## 配套技能：geochemical-anomaly
@@ -43,23 +43,24 @@ MAPGIS 6.7 没有命令行、没有可用的 COM 接口，所有操作都得点�
 | `pitfalls.md` | 21 条实测坑与解法 |
 | `grid_filter.py` | 网格中值滤波 + 剔除小斑块，输出 MAPGIS 可读 `.GRD` |
 
-## 配套技能：vector-io（不点界面，直接改文件）
+## 配套技能：mapgis-native-file（不点界面，直接改文件）
 
-仓库 `skills/vector-io/` 是**纯 Python 的矢量文件读写技能**，绕开 GUI：
+仓库 `skills/mapgis-native-file/` 是**纯 Python 的矢量文件读写技能**，绕开 GUI：
 
 | 文件 | 内容 |
 |---|---|
 | `SKILL.md` | 何时用、三条铁律、字段表、6 个配方、校验清单 |
-| `reference/format.md` | 字节级结构（点/线/面/属性/注记文本池） |
-| `reference/pitfalls.md` | 10 条实测坑 |
-| `scripts/mapgis_wl.py` | `read_wl/write_wl/read_wt/write_wt/read_wt_attrs/write_wt_annot/read_wt_annot` |
+| `references/format.md` | 字节级结构（点/线/属性/注记文本池） |
+| `references/pitfalls.md` | 实测坑与解法 |
+| `scripts/mapgis_native.py` | `Skeleton` / `write_points` / `write_labels` / `write_lines` / `read` / `verify` / `subscript`（纯标准库） |
 | `scripts/wt_attrs.py` | 属性导出 CSV / 按条件就地改值 |
-| `scripts/set_symbol.py` | 批量改子图号（不动其它字节） |
-| `scripts/demo_selftest.py` | 5 项断言的端到端自检（无需 MAPGIS） |
+| `scripts/set_symbol.py` | 只改子图号、高宽、颜色（不动其它字节） |
+| `scripts/selftest.py` | 回归：真实交付文件字节级比对；`--fixture` 用入库最小样本（3 点/3 注记/2 线）跑 golden 比对 |
 
 ```bash
-python skills/vector-io/scripts/demo_selftest.py out/
-python skills/vector-io/scripts/wt_attrs.py dump --wt pts.WT --out attrs.csv
+python skills/mapgis-native-file/scripts/mapgis_native.py verify pts.WT   # 三判据自检
+python skills/mapgis-native-file/scripts/wt_attrs.py dump --wt pts.WT --out attrs.csv
+python skills/mapgis-native-file/scripts/selftest.py                      # 字节级回归（需样本）
 ```
 
 这条路是路线图第 5 步（"绕开 GUI：直接读 .WT/.WL/.WP"）的落地：生成点位图、挂属性、

@@ -1,7 +1,11 @@
-﻿# Windows / PowerShell
+# Windows / PowerShell
 *.log
 *.tmp
 *.png
 *.jpg
 *.JPG
 !docs/**/*.png
+
+# Python
+__pycache__/
+*.pyc
